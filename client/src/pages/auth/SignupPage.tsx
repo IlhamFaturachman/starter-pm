@@ -5,7 +5,7 @@ import { TextField } from '@/components/molecules/TextField';
 import { Button } from '@/components/atoms/Button';
 import { useSignupMutation } from '@/api/queries/auth';
 import { paths } from '@/routes/paths';
-import { User, Mail, Lock } from '@/pages/_icons';
+import { User, Mail, Lock } from '@/components/atoms/icons';
 
 interface SignupForm {
   name: string;

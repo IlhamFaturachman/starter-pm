@@ -2,14 +2,14 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import { paths } from './paths';
 import { authLoader, guestLoader, otpLoader } from './guards';
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
-import { LoginPage } from '@/pages/LoginPage';
-import { SignupPage } from '@/pages/SignupPage';
-import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
-import { OtpPage } from '@/pages/OtpPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { ProjectsPage } from '@/pages/ProjectsPage';
-import { KanbanPage } from '@/pages/KanbanPage';
-import { TableDemoPage } from '@/pages/TableDemoPage';
+import { LoginPage } from '@/pages/auth';
+import { SignupPage } from '@/pages/auth';
+import { ForgotPasswordPage } from '@/pages/auth';
+import { OtpPage } from '@/pages/auth';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
+import { ProjectsPage } from '@/pages/projects/ProjectsPage';
+import { KanbanPage } from '@/pages/kanban/KanbanPage';
+import { TableDemoPage } from '@/pages/table-demo/TableDemoPage';
 
 export const router = createBrowserRouter([
   {

@@ -6,7 +6,7 @@ import { TextField } from '@/components/molecules/TextField';
 import { Button } from '@/components/atoms/Button';
 import { useLoginMutation } from '@/api/queries/auth';
 import { paths } from '@/routes/paths';
-import { Mail, Lock } from '@/pages/_icons';
+import { Mail, Lock } from '@/components/atoms/icons';
 
 interface LoginForm {
   email: string;
