@@ -6,7 +6,7 @@ import { TextField } from '@/components/molecules/TextField';
 import { Button } from '@/components/atoms/Button';
 import { useForgotPasswordMutation } from '@/api/queries/auth';
 import { paths } from '@/routes/paths';
-import { Mail, Shield, Check } from '@/pages/_icons';
+import { Mail, Shield, Check } from '@/components/atoms/icons';
 import { cn } from '@/lib/cn';
 
 interface ForgotForm {

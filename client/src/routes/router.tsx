@@ -1,17 +1,14 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 import { paths } from './paths';
-import { authLoader, guestLoader, otpLoader } from './guards';
+import { guestLoader, otpLoader } from './guards';
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
-import { LoginPage } from '@/pages/LoginPage';
-import { SignupPage } from '@/pages/SignupPage';
-import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
-import { OtpPage } from '@/pages/OtpPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { ProjectsPage } from '@/pages/ProjectsPage';
-import { KanbanPage } from '@/pages/KanbanPage';
-import { TableDemoPage } from '@/pages/TableDemoPage';
-import { UserManagementPage } from '@/pages/UserManagementPage';
+import { ForgotPasswordPage, LoginPage, OtpPage, SignupPage } from '@/pages/auth';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { GroupManagementPage } from '@/pages/GroupManagementPage';
+import { KanbanPage } from '@/pages/kanban/KanbanPage';
+import { ProjectsPage } from '@/pages/projects/ProjectsPage';
+import { TableDemoPage } from '@/pages/table-demo/TableDemoPage';
+import { UserManagementPage } from '@/pages/UserManagementPage';
 
 export const router = createBrowserRouter([
   {
