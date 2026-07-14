@@ -28,7 +28,7 @@ export function SignupPage() {
     }
     try {
       await signup.mutateAsync(data);
-      navigate(paths.verifyOtp);
+      navigate(paths.dashboard);
     } catch (err) {
       methods.setError('root', { message: (err as Error).message || 'Signup failed' });
     }

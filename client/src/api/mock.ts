@@ -12,23 +12,15 @@ const handlers: Record<string, Handler> = {
       user: { id: '1', email, name: email.split('@')[0], role: 'admin' as const },
     };
   },
-  'POST:/auth/signup': () => ({ ok: true }),
-  'POST:/auth/forgot': () => ({ ok: true }),
-  'POST:/auth/verify-otp': (_url, body) => {
-    const { mode, email } = body as { mode: 'signup' | 'forgot'; email: string };
-    if (mode === 'signup') {
-      return {
-        token: 'mock-jwt-token',
-        user: {
-          id: '1',
-          email,
-          name: email.split('@')[0],
-          role: 'admin' as const,
-        },
-      };
-    }
-    return { ok: true };
+  'POST:/auth/signup': (_url, body) => {
+    const { email } = body as { email: string };
+    return {
+      token: 'mock-jwt-token',
+      user: { id: '1', email, name: email.split('@')[0], role: 'admin' as const },
+    };
   },
+  'POST:/auth/forgot': () => ({ ok: true }),
+  'POST:/auth/verify-otp': () => ({ ok: true }),
 };
 
 function matchHandler(method: string, url: string): Handler | undefined {

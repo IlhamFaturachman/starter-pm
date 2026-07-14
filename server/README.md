@@ -18,9 +18,9 @@ which defaults to `http://localhost:3000/api`.
 | Method | Path            | Request body                                      | Success response                          |
 | ------ | --------------- | ------------------------------------------------- | ----------------------------------------- |
 | POST   | `/api/auth/login`     | `{ email, password }`                       | `{ token, user }` — `user` is `User`      |
-| POST   | `/api/auth/signup`    | `{ name, email, password, confirmPassword }` | `{ ok: true }`                            |
+| POST   | `/api/auth/signup`    | `{ name, email, password, confirmPassword }` | `{ token, user }` — auto-login (client redirects straight to dashboard) |
 | POST   | `/api/auth/forgot`    | `{ email }`                                 | `{ ok: true }`                            |
-| POST   | `/api/auth/verify-otp`| `{ mode: 'signup'\|'forgot', email, code }` | `signup` → `{ token, user }`; `forgot` → `{ ok: true }` |
+| POST   | `/api/auth/verify-otp`| `{ email, code }`  (forgot-only, no `mode` field) | `{ ok: true }` — client then redirects to login |
 | GET    | `/api/projects`       | — (auth)                                    | `Project[]`                               |
 | POST   | `/api/projects`       | `Project` (minus `id`/`createdAt`)          | `Project`                                 |
 | GET    | `/api/projects/:projectId/tasks` | — (auth)                        | `Task[]`                                  |

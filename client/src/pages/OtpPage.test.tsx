@@ -8,7 +8,7 @@ jest.mock('@/api/queries/auth', () => ({
 
 describe('OtpPage', () => {
   it('redirects to nothing if no pending email', () => {
-    useAuthStore.setState({ pendingEmail: null, pendingMode: null });
+    useAuthStore.setState({ pendingEmail: null });
     const { container } = render(<OtpPage />);
     expect(container.firstChild).toBeNull();
   });
@@ -16,7 +16,6 @@ describe('OtpPage', () => {
   it('renders OTP boxes when pending', () => {
     useAuthStore.setState({
       pendingEmail: 'me@x.com',
-      pendingMode: 'signup',
       token: null,
       user: null,
     });
