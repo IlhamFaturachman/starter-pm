@@ -1,5 +1,26 @@
 # Commandcode
 .commandcode
 
-# Dependencies
+# Env / secrets (never commit real env files)
+.env
+.env.*
+!.env.example
+
+# Dependencies (nested per package)
 node_modules
+**/node_modules
+
+# Build artifacts
+dist
+**/dist
+storybook-static
+**/storybook-static
+*.tsbuildinfo
+
+# Test / tooling output
+coverage
+**/coverage
+*.log
+
+# OS cruft
+.DS_Store

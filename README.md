@@ -1,80 +1,43 @@
-# Starter PM-FE
+# PM App — Monorepo
 
-Industrial-grade React frontend for a project-management app. Wired to talk to a separate
-Express.js backend (validation lives on the BE only — no double validation on the FE).
+A project-management app split into two sibling packages so the frontend and backend
+can live in one repo and stay in sync.
 
-## Stack
+```
+.
+├── client/   # React 19 + Vite frontend (the existing starter-pm-fe app)
+└── server/   # Backend (Express + Socket.IO) — see server/README.md for the contract
+```
 
-- **React 19** + **Vite 6** + **TypeScript** (strict)
-- **Tailwind CSS v4** (via `@tailwindcss/vite`)
-- **react-router 8.2.0** (loaders as middleware, `createBrowserRouter`)
-- **Zustand** (client/UI state) · **TanStack Query v5** (server state)
-- **react-data-table-component 8.x** (tabulation)
-- **@dnd-kit** (Kanban) · **react-querybuilder** (filter UI)
-- **React Hook Form** (form state — validation is BE-only)
-- **Socket.IO Client** behind a clean `SocketManager` interface
-- **Storybook 8 Autodocs** (the "Swagger/Scalar for components")
-- **Jest** + **Testing Library** + **ESLint** + **Prettier**
-- **Atomic Design** (atoms / molecules / organisms / templates)
+## Layout
 
-## Scripts
+- **`client/`** — the frontend. React 19, Vite 6, TypeScript, Tailwind v4, Zustand,
+  TanStack Query, react-router 8.2, react-data-table, @dnd-kit, react-querybuilder,
+  React Hook Form, Socket.IO client, Storybook 8, Jest. Its own `README.md` and
+  configs (`vite.config.ts`, `jest.config.cjs`, `tsconfig*`, `eslint.config.js`, etc.)
+  all live inside `client/` and resolve paths relative to that folder.
+- **`server/`** — the backend. Currently empty (just a `.gitkeep` + contract README).
+  The frontend already expects an HTTP API + Socket.IO server on **port 3000**; the
+  endpoint/event contract is documented in `server/README.md`.
+
+## Running the client
 
 ```bash
-npm run dev            # Vite dev server on :5173
-npm run build          # typecheck + production build
-npm run preview        # preview the prod build
-npm run lint           # ESLint
-npm run format         # Prettier
-npm run test           # Jest
-npm run storybook      # Storybook on :6006
-npm run build-storybook
+cd client
+npm install
+npm run dev          # Vite dev server on :5173 (uses a built-in mock API in dev)
+npm run build        # typecheck + production build
+npm run test         # Jest
+npm run storybook    # Storybook on :6006
 ```
 
-## Environment
+The client defaults to talking to `http://localhost:3000` (`VITE_API_URL`,
+`VITE_SOCKET_URL`). In dev it installs a mock API so it runs without the real server.
+Point those env vars at the real `server/` once it exists.
 
-Create a `.env.local` for backend wiring (defaults already work for `localhost`):
+## Keeping the two in sync
 
-```
-VITE_API_URL=http://localhost:3000/api
-VITE_SOCKET_URL=http://localhost:3000
-```
-
-## Architecture (Atomic Design)
-
-```
-src/
-├── components/
-│   ├── atoms/         # Button, Input, Typography, Badge, Spinner
-│   ├── molecules/     # FormField, DataTable, QueryBuilder, Card
-│   ├── organisms/     # Navbar, Sidebar, KanbanBoard, DataTablePage
-│   └── templates/     # DashboardLayout, AuthLayout
-├── pages/             # Login, Dashboard, Projects, Kanban, TableDemo
-├── routes/            # router, guards (loaders), paths
-├── store/             # auth, ui, socket (Zustand)
-├── api/               # axios client + TanStack Query hooks
-├── sockets/           # SocketManager + SocketProvider + useSocket
-├── hooks/             # cross-cutting hooks
-├── lib/               # cn(), utils
-├── types/             # shared domain types
-├── config/            # env
-└── test/              # jest setup, test-utils
-```
-
-Each component ships as a co-located trio: `Component.tsx`, `Component.test.tsx`,
-`Component.stories.tsx`. The story has `tags: ['autodocs']` so Storybook auto-generates
-a docs page with the prop table and types — no manual docs writing.
-
-## State split
-
-- **Server state** (data from Express BE) → TanStack Query
-- **Client/UI state** (token, theme, sidebar, toasts) → Zustand
-- **Realtime** (sockets) → typed `SocketManager` + `useSocket` hook
-
-## Validation
-
-All validation lives on the Express BE. React Hook Form handles form state only;
-BE field errors are mapped into RHF via `setError()`.
-
-## License
-
-Internal.
+- The contract (endpoints, socket events, domain types) is the single source of truth
+  in `server/README.md`. Mirror it in both halves.
+- Domain types on the client live in `client/src/types/api.ts`.
+- All validation belongs on the server; the client only manages form state.
