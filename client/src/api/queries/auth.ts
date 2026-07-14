@@ -22,7 +22,6 @@ export interface ForgotPayload {
 }
 
 export interface VerifyOtpPayload {
-  mode: 'signup' | 'forgot';
   email: string;
   code: string;
 }
@@ -44,13 +43,13 @@ export function useLoginMutation() {
 }
 
 export function useSignupMutation() {
-  const setPendingEmail = useAuthStore((s) => s.setPendingEmail);
+  const setAuth = useAuthStore((s) => s.setAuth);
   return useMutation({
     mutationFn: async (payload: SignupPayload) => {
-      await apiClient.post('/auth/signup', payload);
-      return payload.email;
+      const { data } = await apiClient.post<AuthResponse>('/auth/signup', payload);
+      return data;
     },
-    onSuccess: (email) => setPendingEmail(email, 'signup'),
+    onSuccess: ({ token, user }) => setAuth(token, user),
   });
 }
 
@@ -61,22 +60,17 @@ export function useForgotPasswordMutation() {
       await apiClient.post('/auth/forgot', payload);
       return payload.email;
     },
-    onSuccess: (email) => setPendingEmail(email, 'forgot'),
+    onSuccess: (email) => setPendingEmail(email),
   });
 }
 
 export function useVerifyOtpMutation() {
-  const setAuth = useAuthStore((s) => s.setAuth);
   const clearPending = useAuthStore((s) => s.clearPending);
   return useMutation({
     mutationFn: async (payload: VerifyOtpPayload) => {
-      const { data } = await apiClient.post<AuthResponse>('/auth/verify-otp', payload);
-      return { data, mode: payload.mode };
+      await apiClient.post('/auth/verify-otp', payload);
     },
-    onSuccess: ({ data, mode }) => {
-      if (mode === 'signup') setAuth(data.token, data.user);
-      else clearPending();
-    },
+    onSuccess: () => clearPending(),
   });
 }
 

@@ -12,26 +12,21 @@ export function OtpPage() {
   const [code, setCode] = useState('');
   const verify = useVerifyOtpMutation();
   const pendingEmail = useAuthStore((s) => s.pendingEmail);
-  const pendingMode = useAuthStore((s) => s.pendingMode);
   const pushToast = useUiStore((s) => s.pushToast);
   const navigate = useNavigate();
 
   const onSubmit = async () => {
-    if (code.length !== 6 || !pendingEmail || !pendingMode) return;
+    if (code.length !== 6 || !pendingEmail) return;
     try {
-      await verify.mutateAsync({ mode: pendingMode, email: pendingEmail, code });
-      if (pendingMode === 'forgot') {
-        pushToast({ message: 'Password reset. Please sign in.', tone: 'success' });
-        navigate(paths.login);
-      } else {
-        navigate(paths.dashboard);
-      }
+      await verify.mutateAsync({ email: pendingEmail, code });
+      pushToast({ message: 'Password reset. Please sign in.', tone: 'success' });
+      navigate(paths.login);
     } catch (err) {
       pushToast({ message: (err as Error).message || 'Invalid code', tone: 'danger' });
     }
   };
 
-  if (!pendingEmail || !pendingMode) {
+  if (!pendingEmail) {
     return null;
   }
 
@@ -52,7 +47,7 @@ export function OtpPage() {
 
         <div className="flex gap-2">
           <Link
-            to={pendingMode === 'forgot' ? paths.forgotPassword : paths.signup}
+            to={paths.forgotPassword}
             className="flex-1 rounded-xl border border-border-light px-4 py-3.5 text-center text-sm font-semibold text-text-muted-light transition-colors hover:bg-surface-50 dark:border-border-dark dark:text-text-muted-dark dark:hover:bg-surface-800"
           >
             Back
