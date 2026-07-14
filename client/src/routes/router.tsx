@@ -38,7 +38,7 @@ export const router = createBrowserRouter([
   },
   {
     id: 'app',
-    loader: authLoader,
+    loader: guestLoader, // change to authLoader later when auth is implemented
     element: <DashboardLayout />,
     children: [
       { index: true, element: <Navigate to={paths.dashboard} replace /> },

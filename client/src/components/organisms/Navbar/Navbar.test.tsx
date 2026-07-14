@@ -8,10 +8,13 @@ describe('Navbar', () => {
     useAuthStore.setState({ user: { id: '1', email: 'me@x.com', name: 'Me', role: 'admin' }, token: 't' });
   });
 
-  it('renders user email and logout works', async () => {
+  it('shows the signed-in user profile and logs out from the dropdown', async () => {
     render(<Navbar />);
+    await userEvent.click(screen.getByRole('button', { name: /open user menu/i }));
+    expect(screen.getAllByText('Me')).toHaveLength(2);
     expect(screen.getByText('me@x.com')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /logout/i }));
+    expect(screen.getAllByText('Administrator')).toHaveLength(2);
+    await userEvent.click(screen.getByRole('menuitem', { name: /logout/i }));
     expect(useAuthStore.getState().user).toBeNull();
   });
 });
