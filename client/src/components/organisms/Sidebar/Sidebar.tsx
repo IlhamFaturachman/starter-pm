@@ -1,34 +1,27 @@
-import { NavLink } from 'react-router';
 import { paths } from '@/routes/paths';
-import { cn } from '@/lib/cn';
+import { SidebarNavItem, type SidebarNavItemProps } from '@/components/molecules/SidebarNavItem';
 
-const items = [
-  { to: paths.dashboard, label: 'Dashboard' },
-  { to: paths.projects, label: 'Projects' },
-  { to: paths.kanban, label: 'Kanban' },
-  { to: paths.tableDemo, label: 'Table Demo' },
+const items: SidebarNavItemProps[] = [
+  { to: paths.dashboard, label: 'Dashboard', icon: 'dashboard' },
+  { to: paths.projects, label: 'Projects', icon: 'projects' },
+  { to: paths.kanban, label: 'Kanban', icon: 'kanban' },
+  { to: paths.tableDemo, label: 'Table Demo', icon: 'table' },
+  {
+    to: paths.settings,
+    label: 'Settings',
+    icon: 'settings',
+    children: [
+      { to: paths.userManagement, label: 'User Management', icon: 'users' },
+      { to: paths.groupManagement, label: 'Group Management', icon: 'groups' },
+    ],
+  },
 ];
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-56 border-r border-surface-200 bg-white p-4 md:block">
+    <aside className="hidden w-64 border-r border-surface-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 md:block">
       <nav className="flex flex-col gap-1">
-        {items.map((it) => (
-          <NavLink
-            key={it.to}
-            to={it.to}
-            className={({ isActive }) =>
-              cn(
-                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-surface-700 hover:bg-surface-100',
-              )
-            }
-          >
-            {it.label}
-          </NavLink>
-        ))}
+        {items.map((item) => <SidebarNavItem key={item.to} {...item} />)}
       </nav>
     </aside>
   );

@@ -10,6 +10,8 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { KanbanPage } from '@/pages/KanbanPage';
 import { TableDemoPage } from '@/pages/TableDemoPage';
+import { UserManagementPage } from '@/pages/UserManagementPage';
+import { GroupManagementPage } from '@/pages/GroupManagementPage';
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +48,9 @@ export const router = createBrowserRouter([
       { path: paths.projects, element: <ProjectsPage /> },
       { path: paths.kanban, element: <KanbanPage /> },
       { path: paths.tableDemo, element: <TableDemoPage /> },
+      { path: paths.settings, element: <Navigate to={paths.userManagement} replace /> },
+      { path: paths.userManagement, element: <UserManagementPage /> },
+      { path: paths.groupManagement, element: <GroupManagementPage /> },
     ],
   },
   {

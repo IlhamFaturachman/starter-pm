@@ -5,3 +5,4 @@ export * from './Card';
 export * from './TextField';
 export * from './OtpInput';
 export * from './AuthCard';
+export * from './SidebarNavItem';

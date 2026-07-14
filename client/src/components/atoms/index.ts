@@ -4,3 +4,4 @@ export * from './Typography';
 export * from './Badge';
 export * from './Spinner';
 export * from './ThemeToggle';
+export * from './NavigationIcon';

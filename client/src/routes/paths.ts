@@ -8,4 +8,7 @@ export const paths = {
   projects: '/projects',
   kanban: '/kanban',
   tableDemo: '/table-demo',
+  settings: '/settings',
+  userManagement: '/settings/users',
+  groupManagement: '/settings/groups',
 } as const;
