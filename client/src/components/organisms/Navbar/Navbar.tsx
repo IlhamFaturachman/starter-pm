@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ThemeToggle } from '@/components/atoms/ThemeToggle';
 import { useNavigate } from 'react-router';
 import { Typography } from '@/components/atoms/Typography';
 import { useAuthStore } from '@/store/authStore';
@@ -128,6 +129,18 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* Right side: theme toggle + profile */}
+      <div className="flex items-center gap-3">
+        {/* Theme toggle */}
+        <div className="hidden items-center gap-2 sm:flex">
+          <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+            {/* label hidden, toggle is self-explanatory */}
+          </span>
+          <ThemeToggle />
+        </div>
+
+        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" aria-hidden="true" />
+
       <div ref={profileMenuRef} className="relative">
         <button
           type="button"
@@ -192,6 +205,7 @@ export function Navbar() {
             </button>
           </div>
         )}
+      </div>
       </div>
     </header>
   );

@@ -10,17 +10,17 @@ function useLocation() {
 function useParams() {
   return {};
 }
-function NavLink(props) {
-  const cls = typeof props.className === 'function' ? props.className({ isActive: false }) : props.className;
-  return createElement('a', { href: props.to, className: cls }, props.children);
+function NavLink({ to, className, children, ...rest }) {
+  const cls = typeof className === 'function' ? className({ isActive: false }) : className;
+  return createElement('a', { href: to, className: cls, ...rest }, children);
 }
-function Link(props) {
-  return createElement('a', { href: props.to }, props.children);
+function Link({ to, children, ...rest }) {
+  return createElement('a', { href: to, ...rest }, children);
 }
-function Outlet() {
+function Outlet(props) {
   return null;
 }
-function Navigate() {
+function Navigate(props) {
   return null;
 }
 function redirect(to) {

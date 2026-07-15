@@ -10,7 +10,7 @@ describe('Sidebar', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Projects')).toBeInTheDocument();
     expect(screen.getByText('Kanban')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /settings/i })).toBeInTheDocument();
   });
 
   it('collapses to icon-only navigation with accessible tooltips', async () => {
