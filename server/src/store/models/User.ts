@@ -38,19 +38,6 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
       ) ?? false
     );
   }
-
-  /**
-   * Collect all unique permission keys across all groups.
-   */
-  getPermissionKeys(): string[] {
-    const keys = new Set<string>();
-    for (const group of this.groups ?? []) {
-      for (const perm of group.permissions ?? []) {
-        keys.add(perm.key);
-      }
-    }
-    return [...keys];
-  }
 }
 
 User.init(

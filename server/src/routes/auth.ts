@@ -3,8 +3,8 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import { OTP, User, sequelize } from "../store/db";
 import { sendEmail } from "../utils/email";
-import { sendSuccess, sendError, sendValidationError } from "../utils/response";
-import { formatZodErrors } from "../utils/validation";
+import { sendSuccess, sendError } from "../utils/response";
+import { validateRequest } from "../middlewares/auth";
 import {
   generateOtpCode,
   getOtpExpirationDate,
@@ -37,14 +37,8 @@ const signupSchema = z
     path: ["confirmPassword"],
   });
 
-router.post("/signup", async (req, res) => {
-  const result = signupSchema.safeParse(req.body);
-
-  if (!result.success) {
-    return sendValidationError(res, formatZodErrors(result.error));
-  }
-
-  const { name, email, password } = result.data;
+router.post("/signup", validateRequest(signupSchema), async (req, res) => {
+  const { name, email, password } = req.body;
 
   const existingUser = await User.findOne({ where: { email } });
 
@@ -76,14 +70,8 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-router.post("/login", async (req, res) => {
-  const result = loginSchema.safeParse(req.body);
-
-  if (!result.success) {
-    return sendValidationError(res, formatZodErrors(result.error));
-  }
-
-  const { email, password } = result.data;
+router.post("/login", validateRequest(loginSchema), async (req, res) => {
+  const { email, password } = req.body;
 
   const user = await User.findOne({ where: { email } });
 
@@ -112,14 +100,8 @@ const forgotPasswordSchema = z.object({
   email: z.email().transform((val) => val.toLowerCase()),
 });
 
-router.post("/forgot", async (req, res) => {
-  const result = forgotPasswordSchema.safeParse(req.body);
-
-  if (!result.success) {
-    return sendValidationError(res, formatZodErrors(result.error));
-  }
-
-  const { email } = result.data;
+router.post("/forgot", validateRequest(forgotPasswordSchema), async (req, res) => {
+  const { email } = req.body;
   const user = await User.findOne({ where: { email } });
 
   if (!user) {
@@ -141,7 +123,7 @@ router.post("/forgot", async (req, res) => {
     email,
     code: hashedCode,
     expiresAt: getOtpExpirationDate(),
-    tempUser: null,
+    tempUser: null, // @deprecated 
     attempts: 0,
   });
 
@@ -153,14 +135,8 @@ const verifyOtpSchema = z.object({
   code: z.string().regex(/^\d{6}$/, "OTP code must be 6 digits"),
 });
 
-router.post("/verify-otp", async (req, res) => {
-  const result = verifyOtpSchema.safeParse(req.body);
-
-  if (!result.success) {
-    return sendValidationError(res, formatZodErrors(result.error));
-  }
-
-  const { email, code } = result.data;
+router.post("/verify-otp", validateRequest(verifyOtpSchema), async (req, res) => {
+  const { email, code } = req.body;
   const [user, otp] = await Promise.all([
     User.findOne({ where: { email } }),
     OTP.findOne({ where: { email } }),

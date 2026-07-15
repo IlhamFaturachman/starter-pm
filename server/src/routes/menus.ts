@@ -1,8 +1,12 @@
 import express from "express";
 import { Menu, Permission } from "../store/db";
 import { sendSuccess, sendError } from "../utils/response";
+import { authenticate, requirePermission } from "../middlewares/auth";
 
 const router = express.Router();
+
+router.use(authenticate);
+router.use(requirePermission("menus.read"));
 
 router.get("/", async (_req, res) => {
   const menus = await Menu.findAll({ order: [["order", "ASC"]] });

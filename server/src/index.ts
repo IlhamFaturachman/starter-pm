@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, ErrorRequestHandler } from "express";
 import cors from "cors";
 import { apiReference } from "@scalar/express-api-reference";
 
@@ -11,6 +11,7 @@ import groupsRouter from "./routes/groups";
 import menusRouter from "./routes/menus";
 import { openApiSpec } from "./openapi";
 import { apiLimiter, authLimiter } from "./utils/authHelpers";
+import { sendError } from "./utils/response";
 
 const requiredVariables = ["JWT_SECRET", "SMTP_PASS", "SMTP_FROM"];
 const missingVariables = requiredVariables.filter(
@@ -50,6 +51,13 @@ app.get("/", (req: Request, res: Response) => {
     message: "Server is running! :D -pram",
   });
 });
+
+const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  console.error("Unhandled Application Error:", err);
+  sendError(res, "An unexpected server error occurred. Please try again later.", 500);
+};
+
+app.use(errorHandler);
 
 initDb()
   .then(() => seed())

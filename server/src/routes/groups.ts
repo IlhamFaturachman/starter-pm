@@ -1,10 +1,12 @@
 import { z } from "zod";
-import express from "express";
+import express, { Request, Response } from "express";
 import { Group, Permission, GroupPermission } from "../store/db";
-import { sendSuccess, sendError, sendValidationError } from "../utils/response";
-import { formatZodErrors } from "../utils/validation";
+import { sendSuccess, sendError } from "../utils/response";
+import { authenticate, requirePermission, validateRequest } from "../middlewares/auth";
 
 const router = express.Router();
+
+router.use(authenticate);
 
 // ── Schemas ────────────────────────────────────────────────
 const createGroupSchema = z.object({
@@ -22,7 +24,7 @@ const assignPermissionsSchema = z.object({
 });
 
 // ── GET / — list all groups ────────────────────────────────
-router.get("/", async (_req, res) => {
+router.get("/", requirePermission("groups.read"), async (_req, res) => {
   const groups = await Group.findAll({
     include: [{ model: Permission, as: "permissions", attributes: ["id", "key", "name", "action"] }],
     order: [["name", "ASC"]],
@@ -31,24 +33,19 @@ router.get("/", async (_req, res) => {
 });
 
 // ── POST / — create group ──────────────────────────────────
-router.post("/", async (req, res) => {
-  const result = createGroupSchema.safeParse(req.body);
-  if (!result.success) {
-    return sendValidationError(res, formatZodErrors(result.error));
-  }
-
-  const existing = await Group.findOne({ where: { name: result.data.name } });
+router.post("/", requirePermission("groups.create"), validateRequest(createGroupSchema), async (req, res) => {
+  const existing = await Group.findOne({ where: { name: req.body.name } });
   if (existing) {
     return sendError(res, "Group name already exists", 400);
   }
 
-  const group = await Group.create(result.data);
+  const group = await Group.create(req.body);
   sendSuccess(res, "Group created", group, 201);
 });
 
 // ── GET /:id — group detail with permissions ───────────────
-router.get("/:id", async (req, res) => {
-  const group = await Group.findByPk(req.params.id, {
+router.get("/:id", requirePermission("groups.read"), async (req: Request, res: Response) => {
+  const group = await Group.findByPk(req.params.id as string, {
     include: [{ model: Permission, as: "permissions", attributes: ["id", "key", "name", "action"] }],
   });
 
@@ -60,31 +57,26 @@ router.get("/:id", async (req, res) => {
 });
 
 // ── PUT /:id — update group ────────────────────────────────
-router.put("/:id", async (req, res) => {
-  const group = await Group.findByPk(req.params.id);
+router.put("/:id", requirePermission("groups.update"), validateRequest(updateGroupSchema), async (req: Request, res: Response) => {
+  const group = await Group.findByPk(req.params.id as string);
   if (!group) {
     return sendError(res, "Group not found", 404);
   }
 
-  const result = updateGroupSchema.safeParse(req.body);
-  if (!result.success) {
-    return sendValidationError(res, formatZodErrors(result.error));
-  }
-
-  if (result.data.name) {
-    const existing = await Group.findOne({ where: { name: result.data.name } });
+  if (req.body.name) {
+    const existing = await Group.findOne({ where: { name: req.body.name } });
     if (existing && existing.id !== group.id) {
       return sendError(res, "Group name already exists", 400);
     }
   }
 
-  await group.update(result.data);
+  await group.update(req.body);
   sendSuccess(res, "Group updated", group);
 });
 
 // ── DELETE /:id — delete group ─────────────────────────────
-router.delete("/:id", async (req, res) => {
-  const group = await Group.findByPk(req.params.id);
+router.delete("/:id", requirePermission("groups.delete"), async (req: Request, res: Response) => {
+  const group = await Group.findByPk(req.params.id as string);
   if (!group) {
     return sendError(res, "Group not found", 404);
   }
@@ -95,27 +87,22 @@ router.delete("/:id", async (req, res) => {
 });
 
 // ── PUT /:id/permissions — assign permissions (replace all) ─
-router.put("/:id/permissions", async (req, res) => {
-  const group = await Group.findByPk(req.params.id);
+router.put("/:id/permissions", requirePermission("groups.update"), validateRequest(assignPermissionsSchema), async (req: Request, res: Response) => {
+  const group = await Group.findByPk(req.params.id as string);
   if (!group) {
     return sendError(res, "Group not found", 404);
   }
 
-  const result = assignPermissionsSchema.safeParse(req.body);
-  if (!result.success) {
-    return sendValidationError(res, formatZodErrors(result.error));
-  }
-
   // verify all permissionIds exist
-  const permissions = await Permission.findAll({ where: { id: result.data.permissionIds } });
-  if (permissions.length !== result.data.permissionIds.length) {
+  const permissions = await Permission.findAll({ where: { id: req.body.permissionIds } });
+  if (permissions.length !== req.body.permissionIds.length) {
     return sendError(res, "One or more permission IDs are invalid", 400);
   }
 
   // replace all
   await GroupPermission.destroy({ where: { groupId: group.id } });
   await GroupPermission.bulkCreate(
-    result.data.permissionIds.map((permissionId) => ({
+    req.body.permissionIds.map((permissionId: string) => ({
       groupId: group.id,
       permissionId,
     })),
