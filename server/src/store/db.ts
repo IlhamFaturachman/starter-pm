@@ -30,16 +30,6 @@ Menu.hasMany(Permission, { foreignKey: "menuId", as: "permissions" });
 Permission.belongsTo(Menu, { foreignKey: "menuId", as: "menu" });
 
 
-// ── OTP expiry cleaner ────────────────────────────────────
-const CLEANER_INTERVAL = 60 * 1000;
-setInterval(async () => {
-  try {
-    await OTP.destroy({ where: { expiresAt: { [Op.lt]: new Date() } } });
-  } catch (e) {
-    console.error("OTP cleaner failed", e);
-  }
-}, CLEANER_INTERVAL);
-
 // ── Init ──────────────────────────────────────────────────
 export const initDb = async () => {
   await sequelize.authenticate();

@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { User } from "../store/db";
+import { rateLimit } from "express-rate-limit";
 
 export const OTP_EXPIRATION_MINUTES = 15;
 export const OTP_EXPIRATION_MS = OTP_EXPIRATION_MINUTES * 60 * 1000;
@@ -31,6 +32,10 @@ export function generateToken(userId: string): string {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET!, { expiresIn: "7d" });
 }
 
+export function hashOtpCode(code: string): string {
+  return crypto.createHash("sha256").update(code).digest("hex");
+}
+
 export function formatUserResponse(user: User) {
   return {
     id: user.id,
@@ -39,3 +44,27 @@ export function formatUserResponse(user: User) {
     role: user.role,
   };
 }
+
+export const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests. Please try again later.",
+    data: {},
+  },
+});
+
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many authentication attempts. Please try again later.",
+    data: {},
+  },
+});

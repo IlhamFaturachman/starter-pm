@@ -10,6 +10,7 @@ import permissionsRouter from "./routes/permissions";
 import groupsRouter from "./routes/groups";
 import menusRouter from "./routes/menus";
 import { openApiSpec } from "./openapi";
+import { apiLimiter, authLimiter } from "./utils/authHelpers";
 
 const requiredVariables = ["JWT_SECRET", "SMTP_PASS", "SMTP_FROM"];
 const missingVariables = requiredVariables.filter(
@@ -22,13 +23,16 @@ if (missingVariables.length > 0) {
 }
 
 const app = express();
+app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
 app.use(cors({ origin: "http://localhost:5173" }));
 
-app.use("/api/auth", authRouter);
+app.use("/api/auth", authLimiter, authRouter);
+app.use("/api/*", apiLimiter);
 
 app.use(
   "/api/docs",

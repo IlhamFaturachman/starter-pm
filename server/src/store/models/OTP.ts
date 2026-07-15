@@ -6,6 +6,7 @@ export interface OTPAttributes {
   code: string;
   expiresAt: Date;
   tempUser: Record<string, unknown> | null;
+  attempts: number;
 }
 
 class OTP extends Model<OTPAttributes> implements OTPAttributes {
@@ -13,6 +14,7 @@ class OTP extends Model<OTPAttributes> implements OTPAttributes {
   declare code: string;
   declare expiresAt: Date;
   declare tempUser: Record<string, unknown> | null;
+  declare attempts: number;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -35,6 +37,11 @@ OTP.init(
     tempUser: {
       type: DataTypes.JSONB,
       allowNull: true,
+    },
+    attempts: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     },
   },
   {
