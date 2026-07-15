@@ -6,6 +6,9 @@ import authRouter from "./routes/auth";
 import { initDb } from "./store/db";
 import { seed } from "./store/seed";
 import healthRouter from "./routes/health";
+import permissionsRouter from "./routes/permissions";
+import groupsRouter from "./routes/groups";
+import menusRouter from "./routes/menus";
 import { openApiSpec } from "./openapi";
 
 const app = express();
@@ -24,6 +27,9 @@ app.use(
   }),
 );
 app.use("/api/health", healthRouter);
+app.use("/api/permissions", permissionsRouter);
+app.use("/api/groups", groupsRouter);
+app.use("/api/menus", menusRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({
