@@ -5,6 +5,7 @@ import { router } from '@/routes/router';
 import { queryClient } from '@/api/queryClient';
 import { SocketProvider } from '@/sockets/SocketProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ToastViewport } from '@/components/organisms/ToastViewport';
 import { useUiStore } from '@/store/uiStore';
 
 function ThemeSync() {
@@ -23,6 +24,7 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <SocketProvider>
           <ThemeSync />
+          <ToastViewport />
           <RouterProvider router={router} />
         </SocketProvider>
       </QueryClientProvider>

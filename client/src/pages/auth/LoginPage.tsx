@@ -1,32 +1,42 @@
+import { useCallback } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import { useState } from 'react';
 import { AuthLayout } from '@/components/templates/AuthLayout';
 import { TextField } from '@/components/molecules/TextField';
 import { Button } from '@/components/atoms/Button';
 import { useLoginMutation } from '@/api/queries/auth';
+import { applyFormErrors } from '@/lib/apiError';
 import { paths } from '@/routes/paths';
 import { Mail, Lock } from '@/components/atoms/icons';
 
 interface LoginForm {
   email: string;
   password: string;
+  remember: boolean;
 }
 
 export function LoginPage() {
-  const methods = useForm<LoginForm>({ defaultValues: { email: '', password: '' } });
+  const methods = useForm<LoginForm>({
+    defaultValues: { email: '', password: '', remember: true },
+  });
   const login = useLoginMutation();
   const navigate = useNavigate();
-  const [remember, setRemember] = useState(true);
 
-  const onSubmit = async (data: LoginForm) => {
-    try {
-      await login.mutateAsync(data);
-      navigate(paths.dashboard);
-    } catch (err) {
-      methods.setError('root', { message: (err as Error).message || 'Login failed' });
-    }
-  };
+  const onSubmit = useCallback(
+    async (data: LoginForm) => {
+      try {
+        await login.mutateAsync({
+          email: data.email.trim(),
+          password: data.password,
+          remember: data.remember,
+        });
+        navigate(paths.dashboard, { replace: true });
+      } catch (err) {
+        applyFormErrors(err, methods.setError, 'Login failed');
+      }
+    },
+    [login, methods.setError, navigate],
+  );
 
   return (
     <AuthLayout
@@ -35,7 +45,7 @@ export function LoginPage() {
       withIllustration
     >
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5" noValidate>
           <TextField
             name="email"
             label="Email Address"
@@ -57,8 +67,7 @@ export function LoginPage() {
             <label className="group flex cursor-pointer items-center space-x-2">
               <input
                 type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
+                {...methods.register('remember')}
                 className="h-4 w-4 cursor-pointer rounded border-border-light bg-input-bg-light text-brand-orange focus:ring-brand-orange/50 focus:ring-offset-0 dark:border-border-dark dark:bg-input-bg-dark"
               />
               <span className="text-sm font-medium text-text-muted-light transition-colors group-hover:text-text-main-light dark:text-text-muted-dark dark:group-hover:text-text-main-dark">
@@ -74,7 +83,9 @@ export function LoginPage() {
           </div>
 
           {methods.formState.errors.root && (
-            <p className="text-xs text-red-500">{methods.formState.errors.root.message}</p>
+            <p role="alert" className="text-xs text-red-500">
+              {methods.formState.errors.root.message}
+            </p>
           )}
 
           <Button

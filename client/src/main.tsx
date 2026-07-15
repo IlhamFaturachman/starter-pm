@@ -5,7 +5,7 @@ import { config } from '@/config/env';
 import { installMockApi } from '@/api/mock';
 import './index.css';
 
-if (config.isDev) installMockApi();
+if (config.useMock) installMockApi();
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Root element not found');

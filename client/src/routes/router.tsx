@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 import { paths } from './paths';
-import { guestLoader, otpLoader } from './guards';
+import { authLoader, guestLoader, otpLoader } from './guards';
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { ForgotPasswordPage, LoginPage, OtpPage, SignupPage } from '@/pages/auth';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
@@ -37,7 +37,7 @@ export const router = createBrowserRouter([
   },
   {
     id: 'app',
-    loader: guestLoader, // change to authLoader later when auth is implemented
+    loader: authLoader,
     element: <DashboardLayout />,
     children: [
       { index: true, element: <Navigate to={paths.dashboard} replace /> },

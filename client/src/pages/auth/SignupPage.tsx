@@ -1,9 +1,11 @@
+import { useCallback } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { AuthLayout } from '@/components/templates/AuthLayout';
 import { TextField } from '@/components/molecules/TextField';
 import { Button } from '@/components/atoms/Button';
 import { useSignupMutation } from '@/api/queries/auth';
+import { applyFormErrors } from '@/lib/apiError';
 import { paths } from '@/routes/paths';
 import { User, Mail, Lock } from '@/components/atoms/icons';
 
@@ -21,18 +23,27 @@ export function SignupPage() {
   const signup = useSignupMutation();
   const navigate = useNavigate();
 
-  const onSubmit = async (data: SignupForm) => {
-    if (data.password !== data.confirmPassword) {
-      methods.setError('confirmPassword', { message: 'Passwords do not match' });
-      return;
-    }
-    try {
-      await signup.mutateAsync(data);
-      navigate(paths.dashboard);
-    } catch (err) {
-      methods.setError('root', { message: (err as Error).message || 'Signup failed' });
-    }
-  };
+  const onSubmit = useCallback(
+    async (data: SignupForm) => {
+      if (data.password !== data.confirmPassword) {
+        methods.setError('confirmPassword', { message: 'Passwords do not match' });
+        return;
+      }
+      try {
+        await signup.mutateAsync({
+          name: data.name.trim(),
+          email: data.email.trim(),
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+          remember: true,
+        });
+        navigate(paths.dashboard, { replace: true });
+      } catch (err) {
+        applyFormErrors(err, methods.setError, 'Signup failed');
+      }
+    },
+    [methods, navigate, signup],
+  );
 
   return (
     <AuthLayout
@@ -41,7 +52,7 @@ export function SignupPage() {
       withIllustration
     >
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5" noValidate>
           <TextField
             name="name"
             label="Full Name"
@@ -75,7 +86,9 @@ export function SignupPage() {
           />
 
           {methods.formState.errors.root && (
-            <p className="text-xs text-red-500">{methods.formState.errors.root.message}</p>
+            <p role="alert" className="text-xs text-red-500">
+              {methods.formState.errors.root.message}
+            </p>
           )}
 
           <Button

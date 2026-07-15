@@ -8,6 +8,13 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const setStatus = useSocketStore((s) => s.setStatus);
 
   useEffect(() => {
+    if (!token) {
+      socketManager.disconnect();
+      setStatus('disconnected');
+      return;
+    }
+
+    setStatus('connecting');
     const socket = socketManager.connect(token);
     if (!socket) return;
 
