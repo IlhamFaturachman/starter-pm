@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 
 jest.mock('@/api/queries/auth', () => ({
   useVerifyOtpMutation: () => ({ mutateAsync: jest.fn(), isPending: false }),
+  useResendOtpMutation: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
 
 describe('OtpPage', () => {

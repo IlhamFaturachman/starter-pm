@@ -1,4 +1,4 @@
-import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { apiClient } from '@/api/client';
 import { config } from '@/config/env';
 
@@ -9,47 +9,75 @@ const handlers: Record<string, Handler> = {
     const { email } = body as { email: string };
     return {
       token: 'mock-jwt-token',
-      user: { id: '1', email, name: email.split('@')[0], role: 'admin' as const },
+      user: { id: '1', email, name: email.split('@')[0] || 'user', role: 'admin' as const },
     };
   },
   'POST:/auth/signup': (_url, body) => {
-    const { email } = body as { email: string };
+    const { email, name } = body as { email: string; name?: string };
     return {
       token: 'mock-jwt-token',
-      user: { id: '1', email, name: email.split('@')[0], role: 'admin' as const },
+      user: {
+        id: '1',
+        email,
+        name: name || email.split('@')[0] || 'user',
+        role: 'member' as const,
+      },
     };
   },
   'POST:/auth/forgot': () => ({ ok: true }),
   'POST:/auth/verify-otp': () => ({ ok: true }),
 };
 
-function matchHandler(method: string, url: string): Handler | undefined {
-  const clean = url.replace(config.apiUrl, '').split('?')[0];
-  return handlers[`${method}:${clean}`];
+function normalizePath(url: string): string {
+  let path = url ?? '';
+  if (path.startsWith('http')) {
+    path = path.replace(config.apiUrl, '');
+  }
+  path = path.split('?')[0] || '';
+  if (!path.startsWith('/')) path = `/${path}`;
+  return path;
 }
 
+function matchHandler(method: string, url: string): Handler | undefined {
+  return handlers[`${method}:${normalizePath(url)}`];
+}
+
+function parseBody(data: unknown): unknown {
+  if (data == null || data === '') return undefined;
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data);
+    } catch {
+      return data;
+    }
+  }
+  return data;
+}
+
+/** Dev-only mock that returns real Axios responses (mutations work). */
 export function installMockApi(): void {
   apiClient.interceptors.request.use((req: InternalAxiosRequestConfig) => {
-    const handler = matchHandler(req.method?.toUpperCase() ?? 'GET', req.url ?? '');
+    const method = (req.method ?? 'get').toUpperCase();
+    const url = req.url ?? '';
+    const handler = matchHandler(method, url);
     if (!handler) return req;
 
-    const body = req.data ? JSON.parse(req.data as string) : undefined;
-    const response: AxiosResponse = {
-      data: handler(req.url ?? '', body),
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: req,
-    } as AxiosResponse;
+    const body = parseBody(req.data);
+    const data = handler(url, body);
 
-    return Promise.reject({
-      __mock: true,
-      response,
-      config: req,
-    });
+    const adapter: AxiosAdapter = async (config) => {
+      const response: AxiosResponse = {
+        data,
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        config,
+        request: {},
+      };
+      return response;
+    };
+
+    req.adapter = adapter;
+    return req;
   });
-}
-
-export function isMockError(err: unknown): err is { __mock: true; response: AxiosResponse } {
-  return Boolean((err as { __mock?: boolean })?.__mock);
 }

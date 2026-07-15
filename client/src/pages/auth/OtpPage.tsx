@@ -1,34 +1,57 @@
+import { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { AuthLayout } from '@/components/templates/AuthLayout';
 import { OtpInput } from '@/components/molecules/OtpInput';
 import { Button } from '@/components/atoms/Button';
-import { useVerifyOtpMutation } from '@/api/queries/auth';
+import { useResendOtpMutation, useVerifyOtpMutation } from '@/api/queries/auth';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { paths } from '@/routes/paths';
-import { useState } from 'react';
 
 export function OtpPage() {
   const [code, setCode] = useState('');
   const verify = useVerifyOtpMutation();
+  const resend = useResendOtpMutation();
   const pendingEmail = useAuthStore((s) => s.pendingEmail);
   const pushToast = useUiStore((s) => s.pushToast);
   const navigate = useNavigate();
 
-  const onSubmit = async () => {
-    if (code.length !== 6 || !pendingEmail) return;
+  const canSubmit = useMemo(
+    () => code.length === 6 && Boolean(pendingEmail) && !verify.isPending,
+    [code.length, pendingEmail, verify.isPending],
+  );
+
+  const onCodeChange = useCallback((value: string) => {
+    setCode(value.replace(/\D/g, '').slice(0, 6));
+  }, []);
+
+  const onSubmit = useCallback(async () => {
+    if (!canSubmit || !pendingEmail) return;
     try {
       await verify.mutateAsync({ email: pendingEmail, code });
-      pushToast({ message: 'Password reset. Please sign in.', tone: 'success' });
-      navigate(paths.login);
+      pushToast({
+        message: 'Password reset. Check your email for a temporary password, then sign in.',
+        tone: 'success',
+      });
+      navigate(paths.login, { replace: true });
     } catch (err) {
-      pushToast({ message: (err as Error).message || 'Invalid code', tone: 'danger' });
+      pushToast({ message: getApiErrorMessage(err, 'Invalid code'), tone: 'danger' });
     }
-  };
+  }, [canSubmit, code, navigate, pendingEmail, pushToast, verify]);
 
-  if (!pendingEmail) {
-    return null;
-  }
+  const onResend = useCallback(async () => {
+    if (!pendingEmail || resend.isPending) return;
+    try {
+      await resend.mutateAsync(pendingEmail);
+      setCode('');
+      pushToast({ message: 'A new code was sent to your email.', tone: 'info' });
+    } catch (err) {
+      pushToast({ message: getApiErrorMessage(err, 'Could not resend code'), tone: 'danger' });
+    }
+  }, [pendingEmail, pushToast, resend]);
+
+  if (!pendingEmail) return null;
 
   return (
     <AuthLayout
@@ -43,7 +66,7 @@ export function OtpPage() {
       }
     >
       <div className="space-y-8">
-        <OtpInput value={code} onChange={setCode} />
+        <OtpInput value={code} onChange={onCodeChange} disabled={verify.isPending} />
 
         <div className="flex gap-2">
           <Link
@@ -56,7 +79,7 @@ export function OtpPage() {
             type="button"
             onClick={onSubmit}
             isLoading={verify.isPending}
-            disabled={code.length !== 6}
+            disabled={!canSubmit}
             className="flex-1 rounded-xl bg-gradient-to-r from-brand-orange to-orange-500 py-3.5 font-bold text-white shadow-lg shadow-brand-orange/20 hover:from-brand-orange-hover hover:to-orange-600 hover:shadow-glow-orange disabled:opacity-50"
           >
             Verify Code
@@ -67,9 +90,11 @@ export function OtpPage() {
           Didn&apos;t receive the email?{' '}
           <button
             type="button"
-            className="font-semibold text-brand-blue transition-colors hover:text-brand-blue-hover"
+            onClick={onResend}
+            disabled={resend.isPending}
+            className="font-semibold text-brand-blue transition-colors hover:text-brand-blue-hover disabled:opacity-50"
           >
-            Click to resend
+            {resend.isPending ? 'Sending…' : 'Click to resend'}
           </button>
         </p>
       </div>

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { AuthLayout } from '@/components/templates/AuthLayout';
 import { TextField } from '@/components/molecules/TextField';
 import { Button } from '@/components/atoms/Button';
 import { useForgotPasswordMutation } from '@/api/queries/auth';
+import { applyFormErrors } from '@/lib/apiError';
 import { paths } from '@/routes/paths';
 import { Mail, Shield, Check } from '@/components/atoms/icons';
 import { cn } from '@/lib/cn';
@@ -20,18 +21,30 @@ export function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [confirmed, setConfirmed] = useState(false);
 
-  const onSubmit = async (data: ForgotForm) => {
-    if (!data.human) {
-      methods.setError('human', { message: 'Please confirm you are human' });
-      return;
-    }
-    try {
-      await forgot.mutateAsync({ email: data.email });
-      navigate(paths.verifyOtp);
-    } catch (err) {
-      methods.setError('root', { message: (err as Error).message || 'Request failed' });
-    }
-  };
+  const onToggleHuman = useCallback(
+    (checked: boolean) => {
+      setConfirmed(checked);
+      methods.setValue('human', checked, { shouldValidate: true });
+      if (checked) methods.clearErrors('human');
+    },
+    [methods],
+  );
+
+  const onSubmit = useCallback(
+    async (data: ForgotForm) => {
+      if (!data.human) {
+        methods.setError('human', { message: 'Please confirm you are human' });
+        return;
+      }
+      try {
+        await forgot.mutateAsync({ email: data.email.trim() });
+        navigate(paths.verifyOtp, { replace: true });
+      } catch (err) {
+        applyFormErrors(err, methods.setError, 'Request failed');
+      }
+    },
+    [forgot, methods, navigate],
+  );
 
   return (
     <AuthLayout
@@ -39,7 +52,7 @@ export function ForgotPasswordPage() {
       subtitle="No worries, we'll send you reset instructions."
     >
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5" noValidate>
           <TextField
             name="email"
             label="Email"
@@ -58,7 +71,7 @@ export function ForgotPasswordPage() {
                     'flex h-6 w-6 items-center justify-center rounded border-2 transition-colors',
                     confirmed
                       ? 'border-brand-orange bg-brand-orange text-white'
-                      : 'border-border-light dark:border-border-dark group-hover:border-brand-orange',
+                      : 'border-border-light group-hover:border-brand-orange dark:border-border-dark',
                   )}
                 >
                   {confirmed && <Check className="h-4 w-4" />}
@@ -69,22 +82,21 @@ export function ForgotPasswordPage() {
               <input
                 type="checkbox"
                 checked={confirmed}
-                onChange={(e) => {
-                  setConfirmed(e.target.checked);
-                  methods.setValue('human', e.target.checked);
-                }}
+                onChange={(e) => onToggleHuman(e.target.checked)}
                 className="sr-only"
               />
             </label>
             {methods.formState.errors.human && (
-              <p className="mt-1 text-xs text-red-500">
+              <p role="alert" className="mt-1 text-xs text-red-500">
                 {methods.formState.errors.human.message}
               </p>
             )}
           </div>
 
           {methods.formState.errors.root && (
-            <p className="text-xs text-red-500">{methods.formState.errors.root.message}</p>
+            <p role="alert" className="text-xs text-red-500">
+              {methods.formState.errors.root.message}
+            </p>
           )}
 
           <Button

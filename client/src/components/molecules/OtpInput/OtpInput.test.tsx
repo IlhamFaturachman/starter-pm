@@ -11,13 +11,13 @@ function Harness() {
 describe('OtpInput', () => {
   it('renders 6 boxes', () => {
     render(<Harness />);
-    expect(screen.getAllByRole('spinbutton').length).toBe(6);
+    expect(screen.getAllByRole('textbox').length).toBe(6);
   });
 
   it('accepts typed digit', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    const boxes = screen.getAllByRole('spinbutton');
+    const boxes = screen.getAllByRole('textbox');
     await user.type(boxes[0], '1');
     expect((boxes[0] as HTMLInputElement).value).toBe('1');
   });

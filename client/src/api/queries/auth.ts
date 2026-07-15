@@ -1,13 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
 import { apiClient } from '@/api/client';
 import { useAuthStore } from '@/store/authStore';
-import type { AuthResponse, ApiErrorResponse } from '@/types/api';
-import { isMockError } from '@/api/mock';
+import type { AuthResponse } from '@/types/api';
 
 export interface LoginPayload {
   email: string;
   password: string;
+  remember?: boolean;
 }
 
 export interface SignupPayload {
@@ -15,6 +14,7 @@ export interface SignupPayload {
   email: string;
   password: string;
   confirmPassword: string;
+  remember?: boolean;
 }
 
 export interface ForgotPayload {
@@ -26,30 +26,25 @@ export interface VerifyOtpPayload {
   code: string;
 }
 
-const unwrap = (err: unknown) => {
-  if (isMockError(err)) return err.response;
-  return (err as AxiosError<ApiErrorResponse>).response;
-};
-
 export function useLoginMutation() {
   const setAuth = useAuthStore((s) => s.setAuth);
   return useMutation({
-    mutationFn: async (payload: LoginPayload) => {
+    mutationFn: async ({ remember: _remember, ...payload }: LoginPayload) => {
       const { data } = await apiClient.post<AuthResponse>('/auth/login', payload);
-      return data;
+      return { ...data, remember: _remember ?? true };
     },
-    onSuccess: ({ token, user }) => setAuth(token, user),
+    onSuccess: ({ token, user, remember }) => setAuth(token, user, { remember }),
   });
 }
 
 export function useSignupMutation() {
   const setAuth = useAuthStore((s) => s.setAuth);
   return useMutation({
-    mutationFn: async (payload: SignupPayload) => {
+    mutationFn: async ({ remember: _remember, ...payload }: SignupPayload) => {
       const { data } = await apiClient.post<AuthResponse>('/auth/signup', payload);
-      return data;
+      return { ...data, remember: _remember ?? true };
     },
-    onSuccess: ({ token, user }) => setAuth(token, user),
+    onSuccess: ({ token, user, remember }) => setAuth(token, user, { remember }),
   });
 }
 
@@ -57,7 +52,7 @@ export function useForgotPasswordMutation() {
   const setPendingEmail = useAuthStore((s) => s.setPendingEmail);
   return useMutation({
     mutationFn: async (payload: ForgotPayload) => {
-      await apiClient.post('/auth/forgot', payload);
+      await apiClient.post<{ ok: boolean }>('/auth/forgot', payload);
       return payload.email;
     },
     onSuccess: (email) => setPendingEmail(email),
@@ -68,10 +63,18 @@ export function useVerifyOtpMutation() {
   const clearPending = useAuthStore((s) => s.clearPending);
   return useMutation({
     mutationFn: async (payload: VerifyOtpPayload) => {
-      await apiClient.post('/auth/verify-otp', payload);
+      const { data } = await apiClient.post<{ ok: boolean }>('/auth/verify-otp', payload);
+      return data;
     },
     onSuccess: () => clearPending(),
   });
 }
 
-export { unwrap as unwrapAuthError };
+export function useResendOtpMutation() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      await apiClient.post<{ ok: boolean }>('/auth/forgot', { email });
+      return email;
+    },
+  });
+}

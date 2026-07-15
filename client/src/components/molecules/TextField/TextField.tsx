@@ -10,6 +10,7 @@ export interface TextFieldProps<T extends FieldValues = FieldValues> {
   placeholder?: string;
   icon?: ReactNode;
   autoComplete?: string;
+  disabled?: boolean;
 }
 
 export function TextField<T extends FieldValues>({
@@ -19,8 +20,10 @@ export function TextField<T extends FieldValues>({
   placeholder,
   icon,
   autoComplete,
+  disabled,
 }: TextFieldProps<T>) {
   const id = useId();
+  const errorId = `${id}-error`;
   const { control } = useFormContext<T>();
 
   return (
@@ -40,18 +43,31 @@ export function TextField<T extends FieldValues>({
         <Controller
           control={control}
           name={name}
-          render={({ field, fieldState }) => (
-            <Input
-              id={id}
-              type={type}
-              placeholder={placeholder}
-              autoComplete={autoComplete}
-              hasError={Boolean(fieldState.error)}
-              className={cn(icon && 'pl-11', 'py-3.5')}
-              {...field}
-              value={(field.value as string | number | undefined) ?? ''}
-            />
-          )}
+          render={({ field, fieldState }) => {
+            const hasError = Boolean(fieldState.error);
+            return (
+              <>
+                <Input
+                  id={id}
+                  type={type}
+                  placeholder={placeholder}
+                  autoComplete={autoComplete}
+                  disabled={disabled}
+                  hasError={hasError}
+                  aria-invalid={hasError || undefined}
+                  aria-describedby={hasError ? errorId : undefined}
+                  className={cn(icon && 'pl-11', 'py-3.5')}
+                  {...field}
+                  value={(field.value as string | number | undefined) ?? ''}
+                />
+                {fieldState.error?.message && (
+                  <p id={errorId} role="alert" className="mt-1.5 text-xs text-red-500">
+                    {fieldState.error.message}
+                  </p>
+                )}
+              </>
+            );
+          }}
         />
       </div>
     </div>

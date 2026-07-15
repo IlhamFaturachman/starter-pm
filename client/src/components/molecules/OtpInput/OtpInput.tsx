@@ -84,8 +84,9 @@ export function OtpInput({ length = 6, value, onChange, disabled }: OtpInputProp
           ref={(el) => {
             inputsRef.current[i] = el;
           }}
-          type="number"
+          type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           autoComplete="one-time-code"
           maxLength={1}
           disabled={disabled}
@@ -96,7 +97,7 @@ export function OtpInput({ length = 6, value, onChange, disabled }: OtpInputProp
             'h-14 w-12 rounded-xl border border-border-light bg-input-bg-light text-center text-2xl font-bold',
             'text-text-main-light focus:border-brand-orange focus:outline-none focus:ring-2 focus:ring-brand-orange/30',
             'transition-all shadow-sm dark:border-border-dark dark:bg-input-bg-dark dark:text-text-main-dark',
-            'disabled:opacity-60',
+            'disabled:opacity-60 [appearance:textfield]',
           )}
           aria-label={`Digit ${i + 1}`}
         />
