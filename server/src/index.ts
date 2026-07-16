@@ -12,6 +12,7 @@ import healthRouter from "./routes/health";
 import permissionsRouter from "./routes/permissions";
 import groupsRouter from "./routes/groups";
 import menusRouter from "./routes/menus";
+import usersRouter from "./routes/users";
 import { openApiSpec } from "./openapi";
 import { apiLimiter, authLimiter } from "./utils/authHelpers";
 import { sendError } from "./utils/response";
@@ -51,6 +52,7 @@ app.use("/api/groups", groupsRouter);
 app.use("/api/menus", menusRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/tasks", tasksRouter);
+app.use("/api/users", usersRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({

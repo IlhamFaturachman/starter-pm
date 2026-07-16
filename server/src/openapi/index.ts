@@ -21,6 +21,7 @@ import { groupsPath } from "./paths/groups";
 import { menusPath } from "./paths/menus";
 import { projectsPath } from "./paths/projects";
 import { tasksPath } from "./paths/tasks";
+import { usersPath } from "./paths/users";
 
 export const openApiSpec: oas31.OpenAPIObject = {
   openapi: "3.1.0",
@@ -50,5 +51,6 @@ export const openApiSpec: oas31.OpenAPIObject = {
     ...menusPath,
     ...projectsPath,
     ...tasksPath,
+    ...usersPath,
   },
 };
